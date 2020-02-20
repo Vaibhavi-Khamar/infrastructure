@@ -1,0 +1,18 @@
+[
+    {
+        "ParameterKey": "CIDRBLOCK",
+        "ParameterValue": "10.1.0.0/16"
+    },
+    {
+        "ParameterKey": "CIDRBLOCK1",
+        "ParameterValue": "10.1.10.0/24"
+    },
+    {
+        "ParameterKey": "CIDRBLOCK2",
+        "ParameterValue": "10.1.20.0/24"
+    },
+    {
+        "ParameterKey": "CIDRBLOCK3",
+        "ParameterValue": "10.1.30.0/24"
+    }
+]
