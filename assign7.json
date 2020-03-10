@@ -1,0 +1,901 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+        "vpcTag": {
+            "Type": "String"
+        },
+        "igTag": {
+            "Type": "String"
+        },
+        "publicRouteTableTag": {
+            "Type": "String"
+        },
+        "privateRouteTableTag": {
+            "Type": "String"
+        },
+        "webSubnetTag": {
+            "Type": "String"
+        },
+        "webSubnet2Tag": {
+            "Type": "String"
+        },
+        "webSubnet3Tag": {
+            "Type": "String"
+        },
+        "dbSubnetTag": {
+            "Type": "String"
+        },
+        "dbSubnet2Tag": {
+            "Type": "String"
+        },
+        "webServerSecurityGroupNameTag": {
+            "Type": "String"
+        },
+        "dbSecurityGroupNameTag": {
+            "Type": "String"
+        },
+        "vpccidr": {
+            "Type": "String"
+        },
+        "websubnetcidr": {
+            "Type": "String"
+        },
+        "websubnet2cidr": {
+            "Type": "String"
+        },
+        "websubnet3cidr": {
+            "Type": "String"
+        },
+        "dbsubnet1cidr": {
+            "Type": "String"
+        },
+        "dbsubnet2cidr": {
+            "Type": "String"
+        },
+        "webSubnetZone": {
+            "Type": "String"
+        },
+        "webSubnetZone2": {
+            "Type": "String"
+        },
+        "webSubnetZone3": {
+            "Type": "String"
+        },
+        "ec2AMI": {
+            "Type": "String"
+        },
+        "InstanceTypeParameter": {
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues": [
+                "t2.micro",
+                "m1.small",
+                "m1.large"
+            ],
+            "Description": "Enter t2.micro, m1.small, or m1.large. Default is t2.micro."
+        },
+        "RdsUserName": {
+            "Type": "String"
+        },
+        "RdsPassword": {
+            "Type": "String"
+        },
+        "RdsHostname": {
+            "Type": "String"
+        }
+    },
+    "Resources": {
+        "myVPC": {
+            "Type": "AWS::EC2::VPC",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "vpccidr"
+                },
+                "EnableDnsHostnames": "true",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "vpcTag"
+                        }
+                    }
+                ]
+            }
+        },
+        "webSubnet": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "websubnetcidr"
+                },
+                "MapPublicIpOnLaunch": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "webSubnetTag"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                },
+                "AvailabilityZone": "us-east-2c"
+            }
+        },
+        "webSubnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "websubnet2cidr"
+                },
+                "MapPublicIpOnLaunch": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "webSubnet2Tag"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                },
+                "AvailabilityZone": "us-east-2b"
+            }
+        },
+        "webSubnet3": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "websubnet3cidr"
+                },
+                "MapPublicIpOnLaunch": true,
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "webSubnet3Tag"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                },
+                "AvailabilityZone": "us-east-2a"
+            }
+        },
+        "dbSubnet1": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "dbsubnet1cidr"
+                },
+                "AvailabilityZone": "us-east-2c",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "dbSubnet2Tag"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                }
+            }
+        },
+        "dbSubnet2": {
+            "Type": "AWS::EC2::Subnet",
+            "Properties": {
+                "CidrBlock": {
+                    "Ref": "dbsubnet2cidr"
+                },
+                "AvailabilityZone": "us-east-2b",
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "dbSubnetTag"
+                        }
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                }
+            }
+        },
+        "myInternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Properties": {
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "igTag"
+                        }
+                    }
+                ]
+            }
+        },
+        "AttachGateway": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "myVPC"
+                },
+                "InternetGatewayId": {
+                    "Ref": "myInternetGateway"
+                }
+            }
+        },
+        "publicRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "myVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "publicRouteTableTag"
+                        }
+                    }
+                ]
+            }
+        },
+        "privateRouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "myVPC"
+                },
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": {
+                            "Ref": "privateRouteTableTag"
+                        }
+                    }
+                ]
+            }
+        },
+        "publicRoute": {
+            "Type": "AWS::EC2::Route",
+            "DependsOn": "myInternetGateway",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "myInternetGateway"
+                }
+            }
+        },
+        "publicRouteTableSubnetAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "webSubnet"
+                }
+            }
+        },
+        "publicRouteTableSubnetAssociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "webSubnet2"
+                }
+            }
+        },
+        "publicRouteTableSubnetAssociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "publicRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "webSubnet3"
+                }
+            }
+        },
+        "privateRouteTableSubnetAssociation2": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "dbSubnet2"
+                }
+            }
+        },
+        "privateRouteTableSubnetAssociation3": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "privateRouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "dbSubnet1"
+                }
+            }
+        },
+        "webServerSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": {
+                    "Ref": "webServerSecurityGroupNameTag"
+                },
+                "GroupDescription": "Security tag for web server",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 3001,
+                        "IpProtocol": "tcp",
+                        "ToPort": 3001
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 22,
+                        "IpProtocol": "tcp",
+                        "ToPort": 22
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 80,
+                        "IpProtocol": "tcp",
+                        "ToPort": 80
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": 443,
+                        "IpProtocol": "tcp",
+                        "ToPort": 443
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                }
+            }
+        },
+        "dbSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupName": {
+                    "Ref": "dbSecurityGroupNameTag"
+                },
+                "GroupDescription": "Security tag for web server",
+                "SecurityGroupIngress": [
+                    {
+                        "SourceSecurityGroupId": {
+                            "Ref": "webServerSecurityGroup"
+                        },
+                        "FromPort": 3306,
+                        "IpProtocol": "tcp",
+                        "ToPort": 3306
+                    }
+                ],
+                "VpcId": {
+                    "Ref": "myVPC"
+                }
+            }
+        },
+        "myEC2Instance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "IamInstanceProfile": {
+                    "Ref": "InstanceProfile"
+                },
+                "ImageId": {
+                    "Ref": "ec2AMI"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceTypeParameter"
+                },
+                "SecurityGroupIds": [
+                    {
+                        "Ref": "webServerSecurityGroup"
+                    }
+                ],
+                "BlockDeviceMappings": [
+                    {
+                        "DeviceName": "/dev/sda1",
+                        "Ebs": {
+                            "VolumeType": "gp2",
+                            "VolumeSize": "20"
+                        }
+                    }
+                ],
+                "KeyName": "ec2",
+                "SubnetId": {
+                    "Ref": "webSubnet"
+                },
+                "UserData": {
+                    "Fn::Base64": {
+                        "Fn::Join": [
+                            "\n",
+                            [
+                                "#!/bin/bash",
+                                {
+                                    "Fn::Sub": [
+                                        "/bin/echo 'RDS_USERNAME=${rusername}' >> /etc/environment",
+                                        {
+                                            "rusername": {
+                                                "Ref": "RdsUserName"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::Sub": [
+                                        "/bin/echo 'RDS_PASSWORD=${rpassword}' >> /etc/environment",
+                                        {
+                                            "rpassword": {
+                                                "Ref": "RdsPassword"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::Sub": [
+                                        "/bin/echo 'RDS_DBNAME=${hname}' >> /etc/environment",
+                                        {
+                                            "hname": {
+                                                "Ref": "RdsHostname"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::Sub": [
+                                        "/bin/echo 'S3BUCKET_NAME=${s3name}' >> /etc/environment",
+                                        {
+                                            "s3name": {
+                                                "Ref": "S3bucket"
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Fn::Sub": [
+                                        "/bin/echo 'RDSHOST_NAME=${host}' >> /etc/environment",
+                                        {
+                                            "host": {
+                                                "Fn::GetAtt": [
+                                                    "myRDSInstance",
+                                                    "Endpoint.Address"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        ]
+                    }
+                }
+            },
+            "DependsOn": "myRDSInstance"
+        },
+        "myDBSubnetGroup": {
+            "Type": "AWS::RDS::DBSubnetGroup",
+            "Properties": {
+                "DBSubnetGroupDescription": "Subnet description of db subnets",
+                "SubnetIds": [
+                    {
+                        "Ref": "dbSubnet2"
+                    },
+                    {
+                        "Ref": "dbSubnet1"
+                    }
+                ],
+                "Tags": [
+                    {
+                        "Key": "Name",
+                        "Value": "dbSubnetGroup"
+                    }
+                ]
+            }
+        },
+        "myRDSInstance": {
+            "Type": "AWS::RDS::DBInstance",
+            "Properties": {
+                "DBName": {
+                    "Ref": "RdsHostname"
+                },
+                "AllocatedStorage": "8",
+                "BackupRetentionPeriod": "0",
+                "Engine": "MySQL",
+                "EngineVersion": "5.7.25",
+                "DBInstanceClass": "db.t3.micro",
+                "MultiAZ": false,
+                "DBInstanceIdentifier": "csye6225-spring2020",
+                "MasterUsername": {
+                    "Ref": "RdsUserName"
+                },
+                "MasterUserPassword": {
+                    "Ref": "RdsPassword"
+                },
+                "DBSubnetGroupName": {
+                    "Ref": "myDBSubnetGroup"
+                },
+                "PubliclyAccessible": false,
+                "VPCSecurityGroups": [
+                    {
+                        "Ref": "dbSecurityGroup"
+                    }
+                ]
+            }
+        },
+        "S3bucket": {
+            "Type": "AWS::S3::Bucket",
+            "Properties": {
+                "AccessControl": "Private",
+                "BucketEncryption": {
+                    "ServerSideEncryptionConfiguration": [
+                        {
+                            "ServerSideEncryptionByDefault": {
+                                "SSEAlgorithm": "AES256"
+                            }
+                        }
+                    ]
+                },
+                "LifecycleConfiguration": {
+                    "Rules": [
+                        {
+                            "Status": "Enabled",
+                            "Transition": {
+                                "StorageClass": "STANDARD_IA",
+                                "TransitionInDays": 30
+                            }
+                        }
+                    ]
+                }
+            }
+        },
+        "ListS3BucketsPolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "ListS3BucketsPolicy",
+                "PolicyDocument": {
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:List*",
+                                "s3:PutObject",
+                                "s3:GetObject",
+                                "s3:DeleteObject",
+                                "s3:PutObjectAcl"
+                            ],
+                            "Resource": [
+                                "arn:aws:s3:::*"
+                            ]
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "ListS3BucketsRole"
+                    }
+                ]
+            }
+        },
+        "ListS3BucketsRole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "ec2.amazonaws.com"
+                                ]
+                            },
+                            "Action": [
+                                "sts:AssumeRole"
+                            ]
+                        }
+                    ]
+                },
+                "Path": "/"
+            }
+        },
+        "InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Path": "/",
+                "Roles": [
+                    {
+                        "Ref": "ListS3BucketsRole"
+                    }
+                ]
+            }
+        },
+        "CodeDeployEC2S3": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "CodeDeploy-EC2-S3",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*"
+                            ],
+                            "Resource": {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                        "arn:aws:s3:::",
+                                        {
+                                            "Ref": "BUCKETNAME"
+                                        },
+                                        "/*"
+                                    ]
+                                ]
+                            }
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:Get*",
+                                "s3:List*",
+                                "s3:Delete*",
+                                "s3:Put*"
+                            ],
+                            "Resource": {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                        "arn:aws:s3:::",
+                                        {
+                                            "Ref": "BUCKETNAMEFORWEBAPP"
+                                        },
+                                        "/*"
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Roles": [
+                    {
+                        "Ref": "CodeDeployEC2ServiceRole"
+                    }
+                ]
+            }
+        },
+        "CirlceCIUploadToS3": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "CirlceCI-Upload-To-S3",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "s3:PutObject"
+                            ],
+                            "Resource": {
+                                "Fn::Join": [
+                                    "",
+                                    [
+                                        "arn:aws:s3:::",
+                                        {
+                                            "Ref": "BUCKETNAME"
+                                        },
+                                        "/*"
+                                    ]
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "Users": [
+                    "circleci"
+                ]
+            }
+        },
+        "CirlceCICodeDeploy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "CirlceCI-Code-Deploy",
+                "PolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "codedeploy:RegisterApplicationRevision",
+                                "codedeploy:GetApplicationRevision"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        ":",
+                                        [
+                                            "arn:aws:codedeploy",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            "application",
+                                            {
+                                                "Ref": "APPNAME"
+                                            }
+                                        ]
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "codedeploy:CreateDeployment",
+                                "codedeploy:GetDeployment"
+                            ],
+                            "Resource": [
+                                "*"
+                            ]
+                        },
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "codedeploy:GetDeploymentConfig"
+                            ],
+                            "Resource": [
+                                {
+                                    "Fn::Join": [
+                                        ":",
+                                        [
+                                            "arn:aws:codedeploy",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            "deploymentconfig",
+                                            "CodeDeployDefault.OneAtATime"
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        ":",
+                                        [
+                                            "arn:aws:codedeploy",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            "deploymentconfig",
+                                            "CodeDeployDefault.HalfAtATime"
+                                        ]
+                                    ]
+                                },
+                                {
+                                    "Fn::Join": [
+                                        ":",
+                                        [
+                                            "arn:aws:codedeploy",
+                                            {
+                                                "Ref": "AWS::Region"
+                                            },
+                                            {
+                                                "Ref": "AWS::AccountId"
+                                            },
+                                            "deploymentconfig",
+                                            "CodeDeployDefault.AllAtOnce"
+                                        ]
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                "Users": [
+                    "circleci"
+                ]
+            }
+        }
+    },
+    "Outputs": {
+        "EC2": {
+            "Description": "The ID of the EC2 Instance",
+            "Value": {
+                "Ref": "myEC2Instance"
+            },
+            "Export": {
+                "Name": "csye6225-cf-ec2"
+            }
+        },
+        "vpcId": {
+            "Description": "The ID of the VPC",
+            "Value": {
+                "Ref": "myVPC"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-vpc"
+            }
+        },
+        "dbSubnet1Id": {
+            "Description": "The ID of the db subnet 2",
+            "Value": {
+                "Ref": "dbSubnet1"
+            }
+        },
+        "dbSubnet2Id": {
+            "Description": "The ID of the db subnet 2",
+            "Value": {
+                "Ref": "dbSubnet2"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-db-subnet2Id"
+            }
+        },
+        "webSubnetId": {
+            "Description": "The ID of web subnet",
+            "Value": {
+                "Ref": "webSubnet"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-web-subnet"
+            }
+        },
+        "webSubnet2Id": {
+            "Description": "The ID of web subnet",
+            "Value": {
+                "Ref": "webSubnet2"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-web-subnet2"
+            }
+        },
+        "webSubnet3Id": {
+            "Description": "The ID of web subnet",
+            "Value": {
+                "Ref": "webSubnet3"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-web-subnet3"
+            }
+        },
+        "webServerSecurityGroupId": {
+            "Description": "The ID of web server security group",
+            "Value": {
+                "Ref": "webServerSecurityGroup"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-web-security-group"
+            }
+        },
+        "dbSecurityGroupId": {
+            "Description": "The ID of RDS security group",
+            "Value": {
+                "Ref": "dbSecurityGroup"
+            },
+            "Export": {
+                "Name": "csye6225-Networking-db-security-group"
+            }
+        }
+    }
+}

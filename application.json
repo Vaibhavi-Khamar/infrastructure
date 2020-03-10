@@ -120,7 +120,9 @@
         "VpcId": {
           "Ref": "myVPC"
         },
-        "AvailabilityZone": "us-east-1c"
+        "AvailabilityZone": {
+          "Ref": "webSubnetZone3"
+        }
       }
     },
     "webSubnet2": {
@@ -141,7 +143,9 @@
         "VpcId": {
           "Ref": "myVPC"
         },
-        "AvailabilityZone": "us-east-1d"
+        "AvailabilityZone": {
+          "Ref": "webSubnetZone2"
+        }
       }
     },
     "webSubnet3": {
@@ -162,7 +166,9 @@
         "VpcId": {
           "Ref": "myVPC"
         },
-        "AvailabilityZone": "us-east-1a"
+        "AvailabilityZone": {
+          "Ref": "webSubnetZone"
+        }
       }
     },
     "dbSubnet1": {
@@ -171,7 +177,9 @@
         "CidrBlock": {
           "Ref": "dbsubnet1cidr"
         },
-        "AvailabilityZone": "us-east-1c",
+        "AvailabilityZone": {
+          "Ref": "webSubnetZone3"
+        },
         "Tags": [
           {
             "Key": "Name",
@@ -191,7 +199,9 @@
         "CidrBlock": {
           "Ref": "dbsubnet2cidr"
         },
-        "AvailabilityZone": "us-east-1b",
+        "AvailabilityZone": {
+          "Ref": "webSubnetZone2"
+        },
         "Tags": [
           {
             "Key": "Name",
