@@ -23,14 +23,14 @@ stackRegion=us-east-1
 web_subnet_zone=us-east-1a
 web_subnet_zone2=us-east-1b
 web_subnet_zone3=us-east-1c
-ec2_ami=ami-024fe60a19505348b
+ec2_ami=ami-07008cd2d57e9446b
 instance_type=t2.micro
 rds_username=root
 rds_password=root1234
 rds_hostname=clouddb
 vpcTag=$stackName$csye_const$vpc_const
 echo $vpcTag
-stackId=$(aws cloudformation --profile dev create-stack --region $stackRegion   --capabilities CAPABILITY_IAM  --stack-name $stackName  --template-body \
+stackId=$(aws cloudformation --profile dev create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
  file://application.json --parameters \
 ParameterKey=vpcTag,ParameterValue=$vpcTag \
 ParameterKey=igTag,ParameterValue=stackName$csye_const$ig_const \
