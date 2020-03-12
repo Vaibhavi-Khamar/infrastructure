@@ -698,7 +698,7 @@
         ]
       }
     },
-    "CodeDeploy1EC2S3": {
+    "CodeDeployEc2S3": {
       "Type": "AWS::IAM::Policy",
       "Properties": {
         "PolicyName": "CodeDeploy-EC2-S3",
