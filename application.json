@@ -932,6 +932,9 @@
     "CodeDeployEC2ServiceRole": {
       "Type": "AWS::IAM::Role",
       "Properties": {
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+        ],
         "RoleName": "CodeDeployEC2ServiceRole",
         "AssumeRolePolicyDocument": {
           "Version": "2012-10-17",
