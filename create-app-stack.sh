@@ -23,6 +23,7 @@ stackRegion=us-east-1
 web_subnet_zone=us-east-1a
 web_subnet_zone2=us-east-1b
 web_subnet_zone3=us-east-1c
+Bucketname=codedeploy.vaibhavikhamar.me
 ec2_ami=ami-07008cd2d57e9446b
 instance_type=t2.micro
 rds_username=root
@@ -40,6 +41,7 @@ ParameterKey=webSubnetTag,ParameterValue=$stackName$csye_const$web_subnet_tag \
 ParameterKey=webSubnet2Tag,ParameterValue=$stackName$csye_const$web_subnet2_tag \
 ParameterKey=webSubnet3Tag,ParameterValue=$stackName$csye_const$web_subnet3_tag \
 ParameterKey=ec2AMI,ParameterValue=$ec2_ami \
+ParameterKey=Bucketname,ParameterValue=$Bucketname \
 ParameterKey=InstanceTypeParameter,ParameterValue=$instance_type \
 ParameterKey=vpccidr,ParameterValue=$vpc_cidr \
 ParameterKey=websubnetcidr,ParameterValue=$websubnet_cidr \
