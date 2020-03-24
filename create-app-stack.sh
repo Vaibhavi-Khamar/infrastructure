@@ -31,7 +31,7 @@ rds_password=root1234
 rds_hostname=clouddb
 vpcTag=$stackName$csye_const$vpc_const
 echo $vpcTag
-stackId=$(aws cloudformation --profile dev create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
+stackId=$(aws cloudformation --profile prod create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
  file://application.json --parameters \
 ParameterKey=vpcTag,ParameterValue=$vpcTag \
 ParameterKey=igTag,ParameterValue=stackName$csye_const$ig_const \
@@ -68,6 +68,6 @@ echo "#############################"
 if [ -z $stackId ]; then
     echo 'Error occurred.Dont proceed. TERMINATED'
 else
-    aws cloudformation --profile dev  wait stack-create-complete --stack-name $stackId
+    aws cloudformation --profile prod  wait stack-create-complete --stack-name $stackId
     echo "STACK CREATION COMPLETE."
 fi
