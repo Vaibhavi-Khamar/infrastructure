@@ -23,15 +23,15 @@ stackRegion=us-east-1
 web_subnet_zone=us-east-1a
 web_subnet_zone2=us-east-1b
 web_subnet_zone3=us-east-1c
-Bucketname=codedeploy.vaibhavikhamar.me
-ec2_ami=ami-07008cd2d57e9446b
+Bucketname=codedeploydev.vaibhavikhamar.me
+ec2_ami=ami-0179209353954f1c0
 instance_type=t2.micro
 rds_username=root
 rds_password=root1234
 rds_hostname=clouddb
 vpcTag=$stackName$csye_const$vpc_const
 echo $vpcTag
-stackId=$(aws cloudformation --profile prod create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
+stackId=$(aws cloudformation --profile dev create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
  file://application.json --parameters \
 ParameterKey=vpcTag,ParameterValue=$vpcTag \
 ParameterKey=igTag,ParameterValue=stackName$csye_const$ig_const \
@@ -68,6 +68,6 @@ echo "#############################"
 if [ -z $stackId ]; then
     echo 'Error occurred.Dont proceed. TERMINATED'
 else
-    aws cloudformation --profile prod  wait stack-create-complete --stack-name $stackId
+    aws cloudformation --profile dev  wait stack-create-complete --stack-name $stackId
     echo "STACK CREATION COMPLETE."
 fi
