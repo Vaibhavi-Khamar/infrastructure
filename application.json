@@ -1109,11 +1109,14 @@
     "LoadBalancerTargetGroup": {
       "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
       "Properties": {
-        "HealthCheckIntervalSeconds": 10,
-        "HealthCheckTimeoutSeconds": 5,
+        "HealthCheckIntervalSeconds": 30,
+        "HealthCheckTimeoutSeconds": 15,
         "UnhealthyThresholdCount": 2,
         "HealthyThresholdCount": 2,
-        "HealthCheckPath": "/",
+        "HealthCheckPath": "/healthcheck",
+        "Matcher":{
+          "HttpCode": "401,200"
+        },
         "TargetGroupAttributes": [
           {
             "Key": "deregistration_delay.timeout_seconds",
@@ -1131,7 +1134,7 @@
             ]
           ]
         },
-        "Port": 80,
+        "Port": 3001,
         "Protocol": "HTTP",
         "VpcId": {
           "Ref": "myVPC"
@@ -1226,23 +1229,21 @@
       "Properties" : {
         "GroupDescription": "security group",
         "VpcId" : { "Ref" : "myVPC" },
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "Description": "To allow world for port 80",
+            "FromPort": "80",
+            "ToPort": "80",
+            "IpProtocol": "TCP"
+          }
+        ],
         "Tags": [
           {
             "Key": "Name",
             "Value": "ELBSecurityGroup"
           }
         ]
-      }
-    },
-    "WebServerSecurityHTTPIn": {
-      "Type": "AWS::EC2::SecurityGroupIngress",
-      "Properties": {
-        "GroupId": {
-          "Ref": "ELBSecurityGroup"
-        },
-        "IpProtocol": "tcp",
-        "FromPort": "80",
-        "ToPort": "80"
       }
     },
     "LBWebServerScaleUpPolicy": {
