@@ -23,7 +23,9 @@ stackRegion=us-east-1
 web_subnet_zone=us-east-1a
 web_subnet_zone2=us-east-1b
 web_subnet_zone3=us-east-1c
-Bucketname=codedeploydev.vaibhavikhamar.me
+Bucketname=codedeploy.vaibhavikhamar.me
+domainID=Z0714304GFGSCJXAZ2XR
+domainName=prod.vaibhavikhamar.me.
 ec2_ami=ami-0179209353954f1c0
 instance_type=t2.micro
 rds_username=root
@@ -31,7 +33,7 @@ rds_password=root1234
 rds_hostname=clouddb
 vpcTag=$stackName$csye_const$vpc_const
 echo $vpcTag
-stackId=$(aws cloudformation --profile dev create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
+stackId=$(aws cloudformation --profile prod create-stack --region $stackRegion   --capabilities CAPABILITY_NAMED_IAM  --stack-name $stackName  --template-body \
  file://application.json --parameters \
 ParameterKey=vpcTag,ParameterValue=$vpcTag \
 ParameterKey=igTag,ParameterValue=stackName$csye_const$ig_const \
@@ -42,6 +44,8 @@ ParameterKey=webSubnet2Tag,ParameterValue=$stackName$csye_const$web_subnet2_tag 
 ParameterKey=webSubnet3Tag,ParameterValue=$stackName$csye_const$web_subnet3_tag \
 ParameterKey=ec2AMI,ParameterValue=$ec2_ami \
 ParameterKey=Bucketname,ParameterValue=$Bucketname \
+ParameterKey=domainID,ParameterValue=$domainID \
+ParameterKey=domainName,ParameterValue=$domainName \
 ParameterKey=InstanceTypeParameter,ParameterValue=$instance_type \
 ParameterKey=vpccidr,ParameterValue=$vpc_cidr \
 ParameterKey=websubnetcidr,ParameterValue=$websubnet_cidr \
@@ -68,6 +72,6 @@ echo "#############################"
 if [ -z $stackId ]; then
     echo 'Error occurred.Dont proceed. TERMINATED'
 else
-    aws cloudformation --profile dev  wait stack-create-complete --stack-name $stackId
+    aws cloudformation --profile prod  wait stack-create-complete --stack-name $stackId
     echo "STACK CREATION COMPLETE."
 fi
