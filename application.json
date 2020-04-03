@@ -94,7 +94,7 @@
     },
     "AWSACCOUNTID": {
       "Type": "String",
-      "Default": "165397792632"
+      "Default": "148155028146"
     },
     "ApplicationName": {
       "Type": "String",
@@ -111,6 +111,36 @@
     "domainName": {
       "Type": "String",
       "Default": "dev.vaibhavikhamar.me."
+    },
+    "S3BucketLambda":{
+      "Description":"S3 bucket for lambda function",
+      "Type":"String",
+      "Default": "lambda.vaibhavikhamar.me"
+    },
+    "DomainNameLambda":{
+      "Description":"lambda domain name",
+      "Type":"String",
+      "Default": "prod.vaibhavikhamar.me"
+    },
+    "LambdaFuntionName": {
+      "Type": "String",
+      "Default": "myfunction"
+    },
+    "LambdaFuntionHandler": {
+      "Type": "String",
+      "Default": "index.handler"
+    },
+    "LambdaFuntionRuntime": {
+      "Type": "String",
+      "Default": "nodejs12.x"
+    },
+    "AmazonSNSFullAccess": {
+      "Type": "String",
+      "Default": "arn:aws:iam::aws:policy/AmazonSNSFullAccess"
+    },
+    "BucketRegion": {
+      "Type": "String",
+      "Default": "us-east-1"
     }
   },
   "Resources": {
@@ -876,7 +906,9 @@
       "Type": "AWS::IAM::Role",
       "Properties": {
         "ManagedPolicyArns": [
-          "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+          "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
+          "arn:aws:iam::aws:policy/AmazonSNSFullAccess",
+          "arn:aws:iam::aws:policy/service-role/AmazonEC2RoleforSSM"
         ],
         "RoleName": "CodeDeployEC2ServiceRole",
         "AssumeRolePolicyDocument": {
@@ -1319,12 +1351,339 @@
         ],
         "ComparisonOperator": "LessThanThreshold"
       }
+    },
+    "SqsQueue":{
+      "Type":"AWS::SQS::Queue",
+      "Properties":{
+        "DelaySeconds":2,
+        "MessageRetentionPeriod":3600,
+        "QueueName":"myQueue",
+        "ReceiveMessageWaitTimeSeconds":10,
+        "VisibilityTimeout":10
+      }
+    },
+    "AWSLambdaExecutePolicy": {
+      "Type": "AWS::IAM::ManagedPolicy",
+      "Properties": {
+        "ManagedPolicyName": "AWSLambdaExecute3",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "lambda:UpdateFunctionCode"
+              ],
+              "Resource": "*"
+            }
+          ]
+        },
+        "Users": [
+          "circleci"
+        ],
+        "Roles": [
+          {
+            "Ref": "CodeDeployEC2ServiceRole"
+          }
+        ]
+      }
+    },
+    "LambdaSNSTopic": {
+      "Type": "AWS::SNS::Topic",
+      "Properties": {
+        "TopicName": "bill_due",
+        "Subscription": [
+          {
+            "Endpoint": {
+              "Fn::GetAtt": [
+                "EmailApplication",
+                "Arn"
+              ]
+            },
+            "Protocol": "lambda"
+          }
+        ]
+      }
+    },
+    "LambdaTriggerPermission": {
+      "Type": "AWS::Lambda::Permission",
+      "Properties": {
+        "Action": "lambda:InvokeFunction",
+        "Principal": "sns.amazonaws.com",
+        "SourceArn": {
+          "Ref": "LambdaSNSTopic"
+        },
+        "FunctionName": {
+          "Fn::GetAtt": [
+            "EmailApplication",
+            "Arn"
+          ]
+        }
+      }
+    },
+    "LambdaServiceRole":{
+      "Type":"AWS::IAM::Role",
+      "Properties":{
+        "AssumeRolePolicyDocument":{
+          "Version":"2012-10-17",
+          "Statement":[
+            {
+              "Effect":"Allow",
+              "Principal":{
+                "Service":"lambda.amazonaws.com"
+              },
+              "Action":"sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          "arn:aws:iam::aws:policy/AmazonRoute53ReadOnlyAccess",
+          "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaDynamoDBExecutionRole",
+          "arn:aws:iam::aws:policy/AmazonSESFullAccess",
+          "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+          "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+        ],
+        "RoleName":"LambdaServiceRole"
+      }
+    },
+    "myDynamoDB":{
+      "Type":"AWS::DynamoDB::Table",
+      "Properties":{
+        "TimeToLiveSpecification":{
+          "AttributeName":"deleteTime",
+          "Enabled":"true"
+        },
+        "BillingMode":"PROVISIONED",
+        "ProvisionedThroughput":{
+          "ReadCapacityUnits":"2",
+          "WriteCapacityUnits":"2"
+        },
+        "AttributeDefinitions":[
+          {
+            "AttributeName":"email",
+            "AttributeType":"S"
+          }
+        ],
+        "TableName":"csye6225",
+        "KeySchema":[
+          {
+            "AttributeName":"email",
+            "KeyType":"HASH"
+          }
+        ]
+      }
+    },
+    "lambdaToCallCloudWatchAndDynamo":{
+      "Type":"AWS::IAM::Policy",
+      "Properties":{
+        "PolicyName":"LambdaDynamoDBPolicy",
+        "PolicyDocument":{
+          "Version":"2012-10-17",
+          "Statement":[
+            {
+              "Effect":"Allow",
+              "Action":[
+                "dynamodb:BatchGetItem",
+                "dynamodb:GetItem",
+                "dynamodb:Query",
+                "dynamodb:Scan",
+                "dynamodb:BatchWriteItem",
+                "dynamodb:PutItem",
+                "dynamodb:UpdateItem"
+              ],
+              "Resource":{
+                "Fn::GetAtt":[
+                  "myDynamoDB",
+                  "Arn"
+                ]
+              }
+            },
+            {
+              "Effect":"Allow",
+              "Action":[
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+              ],
+              "Resource":[
+                {
+                  "Fn::Join":[
+                    "",
+                    [
+                      "arn:aws:logs:",
+                      {
+                        "Ref":"BucketRegion"
+                      },
+                      ":",
+                      {
+                        "Ref":"AWSACCOUNTID"
+                      },
+                      ":*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Effect":"Allow",
+              "Action":"logs:CreateLogGroup",
+              "Resource":"*"
+            },
+            {
+              "Effect":"Allow",
+              "Action":[
+                "ses:SendEmail",
+                "ses:SendRawEmail"
+              ],
+              "Resource":"*"
+            },
+            {
+              "Effect":"Allow",
+              "Action":[
+                "s3:*"
+              ],
+              "Resource":[
+                {
+                  "Fn::Join":[
+                    "",
+                    [
+                      "arn:aws:s3:::",
+                      {
+                        "Ref":"S3BucketLambda"
+                      }
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Users":[
+          "circleci"
+        ],
+        "Roles":[
+          {
+            "Ref":"LambdaServiceRole"
+          }
+        ]
+      }
+    },
+    "EmailApplication": {
+      "Type": "AWS::Lambda::Function",
+      "Description": "lambda function for triggering email service",
+      "Properties": {
+        "Code":{
+          "S3Bucket":{
+            "Ref":"S3BucketLambda"
+          },
+          "S3Key":"serverless.zip"
+        },
+        "FunctionName": {
+          "Ref": "LambdaFuntionName"
+        },
+        "Handler": {
+          "Ref": "LambdaFuntionHandler"
+        },
+        "Role": {
+          "Fn::GetAtt": [
+            "LambdaServiceRole",
+            "Arn"
+          ]
+        },
+        "Runtime": {
+          "Ref": "LambdaFuntionRuntime"
+        },
+        "Timeout": 10,
+        "Environment":{
+          "Variables":{
+            "DOMAIN_NAME":{
+              "Ref":"DomainNameLambda"
+            },
+            "DYNAMO_TABLE":"csye6225"
+          }
+        }
+      }
+    },
+    "EC2accessSQSSNS":{
+      "Type":"AWS::IAM::Policy",
+      "Properties":{
+        "PolicyName":"ec2_sns_sqs_policy",
+        "PolicyDocument":{
+          "Version":"2012-10-17",
+          "Statement":[
+            {
+              "Effect":"Allow",
+              "Action":"sqs:*",
+              "Resource":[
+                {
+                  "Fn::Join":[
+                    "",
+                    [
+                      "arn:aws:sqs:*:",
+                      {
+                        "Ref":"AWSACCOUNTID"
+                      },
+                      ":*"
+                    ]
+                  ]
+                }
+              ]
+            },
+            {
+              "Effect":"Allow",
+              "Action":"sns:*",
+              "Resource":[
+                {
+                  "Fn::Join":[
+                    "",
+                    [
+                      "arn:aws:sns:*:",
+                      {
+                        "Ref":"AWSACCOUNTID"
+                      },
+                      ":*"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        "Users":[
+          "circleci"
+        ],
+        "Roles":[
+          {
+            "Ref":"CodeDeployEC2ServiceRole"
+          }
+        ]
+      }
+    },
+    "SNSTopicSubscribePolicy": {
+      "Type": "AWS::IAM::Policy",
+      "Properties": {
+        "Roles": [
+          {
+            "Ref": "CodeDeployEC2ServiceRole"
+          }
+        ],
+        "PolicyName": "SNS-Topic-Subscribe",
+        "PolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Action": [
+                "sns:Publish"
+              ],
+              "Resource": {
+                "Ref": "LambdaSNSTopic"
+              }
+            }
+          ]
+        }
+      }
     }
-
-
-
-
-
     
   },
   "Outputs": {

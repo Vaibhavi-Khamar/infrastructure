@@ -23,6 +23,7 @@ stackRegion=us-east-1
 web_subnet_zone=us-east-1a
 web_subnet_zone2=us-east-1b
 web_subnet_zone3=us-east-1c
+AWSACCOUNTID=148155028146
 Bucketname=codedeploy.vaibhavikhamar.me
 domainID=Z0714304GFGSCJXAZ2XR
 domainName=prod.vaibhavikhamar.me.
@@ -43,6 +44,7 @@ ParameterKey=webSubnetTag,ParameterValue=$stackName$csye_const$web_subnet_tag \
 ParameterKey=webSubnet2Tag,ParameterValue=$stackName$csye_const$web_subnet2_tag \
 ParameterKey=webSubnet3Tag,ParameterValue=$stackName$csye_const$web_subnet3_tag \
 ParameterKey=ec2AMI,ParameterValue=$ec2_ami \
+ParameterKey=AWSACCOUNTID,ParameterValue=$AWSACCOUNTID \
 ParameterKey=Bucketname,ParameterValue=$Bucketname \
 ParameterKey=domainID,ParameterValue=$domainID \
 ParameterKey=domainName,ParameterValue=$domainName \
