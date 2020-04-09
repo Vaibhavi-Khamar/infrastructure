@@ -13,6 +13,7 @@ db_subnet_tag=db-subnet
 db_subnet2_tag=db-subnet2
 ws_security_group=ws-sg
 db_security_group=db-sg
+lb_security_group=lb-sg
 vpc_cidr=10.0.0.0/16
 websubnet_cidr=10.0.1.0/24
 websubnet2_cidr=10.0.0.0/24
@@ -62,6 +63,7 @@ ParameterKey=dbSubnetTag,ParameterValue=$stackName$csye_const$db_subnet_tag \
 ParameterKey=dbSubnet2Tag,ParameterValue=$stackName$csye_const$db_subnet2_tag \
 ParameterKey=webServerSecurityGroupNameTag,ParameterValue=$stackName$csye_const$ws_security_group \
 ParameterKey=dbSecurityGroupNameTag,ParameterValue=$stackName$csye_const$db_security_group \
+ParameterKey=SSLSecurityGroupNameTag,ParameterValue=$stackName$csye_const$lb_security_group \
 ParameterKey=RdsUserName,ParameterValue=$rds_username \
 ParameterKey=RdsPassword,ParameterValue=$rds_password \
 ParameterKey=RdsHostname,ParameterValue=$rds_hostname \

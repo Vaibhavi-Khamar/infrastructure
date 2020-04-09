@@ -141,6 +141,13 @@
     "BucketRegion": {
       "Type": "String",
       "Default": "us-east-1"
+    },
+    "SSLSecurityGroupNameTag": {
+      "Type": "String"
+    },
+    "CertyARN": {
+      "Type": "String",
+      "Default": "arn:aws:acm:us-east-1:148155028146:certificate/cefc41f6-d357-40bd-94eb-49bba53230c6"
     }
   },
   "Resources": {
@@ -414,12 +421,6 @@
           },
           {
             "CidrIp": "0.0.0.0/0",
-            "FromPort": 22,
-            "IpProtocol": "tcp",
-            "ToPort": 22
-          },
-          {
-            "CidrIp": "0.0.0.0/0",
             "FromPort": 80,
             "IpProtocol": "tcp",
             "ToPort": 80
@@ -603,11 +604,26 @@
           "Ref": "myDBSubnetGroup"
         },
         "PubliclyAccessible": false,
+        "CACertificateIdentifier": "rds-ca-2019",
+        "StorageEncrypted": true,
+        "DBParameterGroupName": {
+          "Ref": "ParameterGroup"
+        },
         "VPCSecurityGroups": [
           {
             "Ref": "dbSecurityGroup"
           }
         ]
+      }
+    },
+    "ParameterGroup": {
+      "Type": "AWS::RDS::DBParameterGroup",
+      "Properties": {
+        "Family": "MySQL5.7",
+        "Description": "MySQL5.7.25 DB Parameter Group",
+        "Parameters": {
+          "performance_schema": "1"
+        }
       }
     },
     "S3bucket": {
@@ -1114,6 +1130,26 @@
         }
       }
     },
+    "SSLSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupName": {
+          "Ref": "SSLSecurityGroupNameTag"
+        },
+        "GroupDescription": "Security tag for load balancer ssl",
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "FromPort": 443,
+            "IpProtocol": "tcp",
+            "ToPort": 443
+          }
+        ],
+        "VpcId": {
+          "Ref": "myVPC"
+        }
+      }
+    },
     "ElasticLoadBalancer": {
       "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
       "Properties": {
@@ -1122,7 +1158,7 @@
         "Type": "application",
         "SecurityGroups": [
           {
-            "Ref": "ELBSecurityGroup"
+            "Ref": "SSLSecurityGroup"
           }
         ],
         "Subnets": [
@@ -1216,8 +1252,15 @@
             }
           }
         ],
-        "Port": "80",
-        "Protocol": "HTTP"
+        "Port": "443",
+        "Protocol": "HTTPS",
+        "Certificates": [
+          {
+            "CertificateArn": {
+              "Ref": "CertyARN"
+            }
+          }
+        ]
       }
     },
     "WebServerGroup": {
