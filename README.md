@@ -1,6 +1,6 @@
 # Infrastructure
 
-Here we use the template build body and create/delete/update stack We can even use seperate file to send parametes which helps in saving sensitive data
+Here we use the template build body and create/delete/update stack 
 
 ## create stack
 
@@ -8,10 +8,12 @@ aws cloudformation create-stack --stack-name Mystack --template-body file://path
 
 ## delete stack
 
-aws cloudformation delete-stack --stack-name MyNetwork
+aws cloudformation delete-stack --stack-name Mystack
 
 ## update stack
 
-aws cloudformation update-stack --stack-name MyNetwork --template-body file://path/to/file_location/networking.json
+aws cloudformation update-stack --stack-name Mystack --template-body file://path/to/file_location/networking.json
 
-add --profie while using aws
+## create/update/delete stack using aws
+
+bash create-app-stack.sh Mystack
